@@ -1,60 +1,33 @@
 @echo off
 echo ========================================
-echo   AI Hub - Build Script
+echo   AIHub - Build Script
 echo ========================================
-echo.
 
-REM Настрой путь к Qt (ИЗМЕНИ НА СВОЙ!)
-set QT_PATH=C:\Qt\6.5.3\msvc2019_64
+call "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=x64
 
-if not exist "%QT_PATH%" (
-    echo [ERROR] Qt not found at: %QT_PATH%
-    echo Please edit build.bat and set correct QT_PATH
-    pause
-    exit /b 1
-)
+cd /d "%~dp0"
 
-echo [INFO] Qt found: %QT_PATH%
-echo.
-
-REM Создай папку build
-if not exist build (
-    echo [INFO] Creating build directory...
-    mkdir build
-)
-
+if not exist build mkdir build
 cd build
 
-echo [INFO] Running CMake...
-cmake .. -DCMAKE_PREFIX_PATH=%QT_PATH% -G "Ninja"
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 if errorlevel 1 (
     echo [ERROR] CMake failed
-    cd ..
     pause
     exit /b 1
 )
 
-echo.
-echo [INFO] Building project...
-cmake --build .
+cmake --build . --config Release
 
 if errorlevel 1 (
     echo [ERROR] Build failed
-    cd ..
     pause
     exit /b 1
 )
 
 echo.
 echo ========================================
-echo   Build successful!
+echo   SUCCESS: build\Release\AIHub.exe
 echo ========================================
-echo.
-echo Executable: build\AIHub.exe
-echo.
-echo Run: build\AIHub.exe
-echo.
-
-cd ..
 pause

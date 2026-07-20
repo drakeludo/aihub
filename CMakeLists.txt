@@ -20,31 +20,9 @@ set(SOURCES
     src/Application.cpp
     src/Application.h
     
-    # Core
-    src/Core/AIRequest.h
-    src/Core/IBrowser.h
-    src/Core/BrowserFactory.cpp
-    src/Core/BrowserFactory.h
-    
-    # Browser (WebView2 based)
-    src/Browser/BrowserManager.cpp
-    src/Browser/BrowserManager.h
-    src/Browser/WebView2Instance.cpp
-    src/Browser/WebView2Instance.h
-    src/Browser/DeepSeekBrowser.cpp
-    src/Browser/DeepSeekBrowser.h
-    src/Browser/ChatGPTBrowser.cpp
-    src/Browser/ChatGPTBrowser.h
-    src/Browser/KiroBrowser.cpp
-    src/Browser/KiroBrowser.h
-    
-    # Controllers
-    src/Controllers/ChatController.cpp
-    src/Controllers/ChatController.h
-    
-    # Services
-    src/Services/AIService.cpp
-    src/Services/AIService.h
+    # Logger
+    src/Logger/Logger.cpp
+    src/Logger/Logger.h
     
     # UI (ImGui based)
     src/UI/ImGuiTheme.cpp
@@ -57,14 +35,6 @@ set(SOURCES
     src/UI/LogWindow.h
     src/UI/SettingsWindow.cpp
     src/UI/SettingsWindow.h
-    
-    # Logger
-    src/Logger/Logger.cpp
-    src/Logger/Logger.h
-    
-    # Utils
-    src/Utils/Database.h
-    src/Utils/WorkspaceManager.h
 )
 
 # Executable
@@ -85,9 +55,6 @@ target_link_libraries(AIHub PRIVATE
     windowscodecs
 )
 
-# WebView2 (optional - will add later)
-# For now, we'll implement basic browser automation
-
 # Compiler options
 if(MSVC)
     target_compile_options(AIHub PRIVATE /W4 /permissive- /utf-8)
@@ -97,7 +64,6 @@ if(MSVC)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
     )
-    # Set subsystem to Windows (no console)
     set_target_properties(AIHub PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
@@ -105,8 +71,7 @@ endif()
 install(TARGETS AIHub RUNTIME DESTINATION bin)
 
 message(STATUS "================================")
-message(STATUS "AIHub - ImGui + WebView2 Version")
-message(STATUS "  No Qt required!")
-message(STATUS "  100% Free (MIT License)")
-message(STATUS "  Native Windows (DirectX 11)")
+message(STATUS "AIHub - ImGui + DirectX 11")
+message(STATUS "  Modern C++23")
+message(STATUS "  MIT License")
 message(STATUS "================================")
