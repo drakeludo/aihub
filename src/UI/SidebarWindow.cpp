@@ -1,10 +1,9 @@
 #include "SidebarWindow.h"
-#include "Controllers/ChatController.h"
-#include "imgui.h"
+#include "../Services/ChatService.h"
+#include "../Services/ThemeService.h"
+#include <imgui.h>
 
-SidebarWindow::SidebarWindow(ChatController* controller)
-    : controller_(controller)
-{
+SidebarWindow::SidebarWindow() {
 }
 
 void SidebarWindow::render() {
@@ -12,53 +11,52 @@ void SidebarWindow::render() {
     
     // Header
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.72f, 0.30f, 1.0f));
-    ImGui::TextWrapped("AI Hub");
+    ImGui::TextWrapped("🚀 AI Hub");
     ImGui::PopStyleColor();
     ImGui::Separator();
     ImGui::Spacing();
     
     // New Chat button
     if (ImGui::Button("+ New Chat", ImVec2(-1, 40))) {
-        if (controller_) {
-            controller_->createNewChat();
-        }
+        ChatService::instance().createConversation("ChatGPT", "gpt-4");
     }
-    
-    ImGui::Spacing();
-    
-    // Provider selection
-    ImGui::Text("AI Provider:");
-    const char* providers[] = { "Auto", "DeepSeek", "ChatGPT", "Kiro" };
-    static int currentProvider = 0;
-    ImGui::Combo("##provider", &currentProvider, providers, IM_ARRAYSIZE(providers));
-    
-    ImGui::Spacing();
-    
-    // Strategy selection
-    ImGui::Text("Strategy:");
-    const char* strategies[] = { "Single", "Chain (DS→GPT)", "Parallel", "Best" };
-    static int currentStrategy = 1;
-    ImGui::Combo("##strategy", &currentStrategy, strategies, IM_ARRAYSIZE(strategies));
     
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
     
     // Chat list
-    ImGui::Text("Chats:");
+    ImGui::Text("Conversations:");
     ImGui::BeginChild("ChatList", ImVec2(0, -50), true);
     
-    // TODO: Render chat list from database
-    ImGui::Text("Chat 1");
-    ImGui::Text("Chat 2");
+    auto conversations = ChatService::instance().getConversations();
+    for (size_t i = 0; i < conversations.size(); i++) {
+        const auto& conv = conversations[i];
+        
+        bool isSelected = (selectedChat_ == static_cast<int>(i));
+        if (ImGui::Selectable(("💬 " + conv.title).c_str(), isSelected)) {
+            selectedChat_ = static_cast<int>(i);
+            ChatService::instance().loadConversation(conv.id);
+        }
+        
+        // Show message count
+        if (!conv.messages.empty()) {
+            ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+            ImGui::TextDisabled("(%d)", static_cast<int>(conv.messages.size()));
+        }
+    }
+    
+    if (conversations.empty()) {
+        ImGui::TextDisabled("No conversations yet");
+    }
     
     ImGui::EndChild();
     
     ImGui::Spacing();
     
     // Settings button
-    if (ImGui::Button("⚙ Settings", ImVec2(-1, 36))) {
-        // Open settings
+    if (ImGui::Button("⚙️ Settings", ImVec2(-1, 36))) {
+        // TODO: Open settings
     }
     
     ImGui::End();

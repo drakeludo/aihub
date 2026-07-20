@@ -1,30 +1,20 @@
 #pragma once
 
-#include <string>
+#include "../Models/ChatMessage.h"
 #include <vector>
-
-class ChatController;
-
-struct Message {
-    std::string sender;
-    std::string content;
-    enum Type { User, Assistant, System } type;
-};
 
 class ChatWindow {
 public:
-    explicit ChatWindow(ChatController* controller);
-    
+    ChatWindow();
     void render();
-    void addMessage(const std::string& sender, const std::string& content, Message::Type type);
-    void clear();
     
 private:
     void renderMessageList();
     void renderInputArea();
+    void addMessage(const ChatMessage& msg);
     
-    ChatController* controller_;
-    std::vector<Message> messages_;
+    std::vector<ChatMessage> displayMessages_;
     char inputBuffer_[4096] = {0};
-    bool scrollToBottom_ = false;
+    bool scrollToBottom_{false};
+    int subscriptionId_{-1};
 };

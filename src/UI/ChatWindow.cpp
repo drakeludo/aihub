@@ -1,49 +1,79 @@
 #include "ChatWindow.h"
-#include "Controllers/ChatController.h"
-#include "imgui.h"
+#include "../Services/ChatService.h"
+#include "../Services/ThemeService.h"
+#include "../Core/EventBus.h"
+#include <imgui.h>
 
-ChatWindow::ChatWindow(ChatController* controller)
-    : controller_(controller)
-{
+ChatWindow::ChatWindow() {
+    // Subscribe to message events
+    subscriptionId_ = EventBus::instance().subscribe(EventType::MessageSent,
+        [this](const Event& e) {
+            auto* conv = ChatService::instance().getCurrentConversation();
+            if (conv && !conv->messages.empty()) {
+                addMessage(conv->messages.back());
+            }
+        });
 }
 
 void ChatWindow::render() {
     ImGui::Begin("Chat", nullptr, ImGuiWindowFlags_NoCollapse);
     
-    // Message list area (takes most space)
-    ImGui::BeginChild("MessageList", ImVec2(0, -70), true);
-    renderMessageList();
-    ImGui::EndChild();
+    auto* conv = ChatService::instance().getCurrentConversation();
     
-    // Input area (fixed height at bottom)
-    renderInputArea();
+    if (conv) {
+        // Header
+        ImGui::Text("💬 %s", conv->title.c_str());
+        ImGui::SameLine(ImGui::GetWindowWidth() - 150);
+        ImGui::TextDisabled("Model: %s", conv->model.c_str());
+        ImGui::Separator();
+        
+        // Message list
+        ImGui::BeginChild("MessageList", ImVec2(0, -80), true);
+        renderMessageList();
+        ImGui::EndChild();
+        
+        // Input area
+        renderInputArea();
+    } else {
+        ImGui::TextDisabled("No active conversation");
+        ImGui::TextDisabled("Create a new chat from File menu");
+    }
     
     ImGui::End();
 }
 
 void ChatWindow::renderMessageList() {
-    for (const auto& msg : messages_) {
-        // Message bubble
+    auto* conv = ChatService::instance().getCurrentConversation();
+    if (!conv) return;
+    
+    const auto& colors = ThemeService::instance().getColors();
+    
+    for (const auto& msg : conv->messages) {
         ImVec4 bgColor, textColor;
+        const char* prefix = "";
         
-        if (msg.type == Message::User) {
-            bgColor = ImVec4(0.17f, 0.32f, 0.47f, 1.0f);  // Blue
+        if (msg.role == MessageRole::User) {
+            bgColor = ImVec4(0.17f, 0.32f, 0.47f, 1.0f);
             textColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        } else if (msg.type == Message::Assistant) {
-            bgColor = ImVec4(0.18f, 0.18f, 0.18f, 1.0f);  // Dark grey
+            prefix = "👤 You";
+        } else if (msg.role == MessageRole::Assistant) {
+            bgColor = ImVec4(0.18f, 0.18f, 0.18f, 1.0f);
             textColor = ImVec4(0.88f, 0.88f, 0.88f, 1.0f);
+            prefix = "🤖 AI";
         } else {
-            bgColor = ImVec4(0.24f, 0.18f, 0.18f, 1.0f);  // Dark red
+            bgColor = ImVec4(0.24f, 0.18f, 0.18f, 1.0f);
             textColor = ImVec4(0.80f, 0.80f, 0.80f, 1.0f);
+            prefix = "⚙️ System";
         }
         
         ImGui::PushStyleColor(ImGuiCol_ChildBg, bgColor);
-        ImGui::BeginChild(("msg_" + std::to_string((size_t)&msg)).c_str(), 
-                         ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::BeginChild(("msg_" + std::to_string(msg.id)).c_str(), 
+                         ImVec2(0, 0), true, 
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize);
         
         // Sender
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.72f, 0.30f, 1.0f));
-        ImGui::TextWrapped("%s", msg.sender.c_str());
+        ImGui::Text("%s", prefix);
         ImGui::PopStyleColor();
         
         ImGui::Spacing();
@@ -53,13 +83,20 @@ void ChatWindow::renderMessageList() {
         ImGui::TextWrapped("%s", msg.content.c_str());
         ImGui::PopStyleColor();
         
+        // Status indicator
+        if (msg.status == MessageStatus::Sending) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("...");
+        } else if (msg.status == MessageStatus::Error) {
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Error: %s", msg.errorMessage.c_str());
+        }
+        
         ImGui::EndChild();
         ImGui::PopStyleColor();
         
         ImGui::Spacing();
     }
     
-    // Auto-scroll to bottom
     if (scrollToBottom_) {
         ImGui::SetScrollHereY(1.0f);
         scrollToBottom_ = false;
@@ -72,35 +109,25 @@ void ChatWindow::renderInputArea() {
     
     // Input text
     ImGui::SetNextItemWidth(-100);
-    bool enterPressed = ImGui::InputTextMultiline("##input", inputBuffer_, IM_ARRAYSIZE(inputBuffer_),
-                                                   ImVec2(-100, 50),
-                                                   ImGuiInputTextFlags_CtrlEnterForNewLine);
+    bool enterPressed = ImGui::InputTextMultiline(
+        "##input", inputBuffer_, IM_ARRAYSIZE(inputBuffer_),
+        ImVec2(-100, 60),
+        ImGuiInputTextFlags_CtrlEnterForNewLine
+    );
     
     // Send button
     ImGui::SameLine();
-    if (ImGui::Button("Send", ImVec2(90, 50)) || (enterPressed && ImGui::IsKeyDown(ImGuiKey_ModCtrl))) {
+    if (ImGui::Button("Send\n▶", ImVec2(90, 60)) || (enterPressed && ImGui::IsKeyDown(ImGuiKey_ModCtrl))) {
         if (strlen(inputBuffer_) > 0) {
-            std::string message = inputBuffer_;
-            addMessage("You", message, Message::User);
-            
-            // Send to controller
-            if (controller_) {
-                controller_->sendMessage(message.c_str());
-            }
-            
-            // Clear input
+            ChatService::instance().sendMessage(inputBuffer_);
             memset(inputBuffer_, 0, sizeof(inputBuffer_));
+            scrollToBottom_ = true;
         }
     }
     
     ImGui::Spacing();
 }
 
-void ChatWindow::addMessage(const std::string& sender, const std::string& content, Message::Type type) {
-    messages_.push_back({sender, content, type});
+void ChatWindow::addMessage(const ChatMessage& msg) {
     scrollToBottom_ = true;
-}
-
-void ChatWindow::clear() {
-    messages_.clear();
 }

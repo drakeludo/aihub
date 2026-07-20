@@ -1,13 +1,10 @@
 #pragma once
 
-class ChatController;
-
 class SidebarWindow {
 public:
-    explicit SidebarWindow(ChatController* controller);
+    SidebarWindow();
     void render();
     
 private:
-    ChatController* controller_;
-    int selectedChat_ = -1;
+    int selectedChat_{-1};
 };
