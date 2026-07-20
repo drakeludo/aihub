@@ -1,0 +1,51 @@
+# Build folders
+build/
+cmake-portable/
+cmake.zip
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Binaries
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.temp
+desktop.ini
+
+# vcpkg
+vcpkg_installed/
+
+# Qt (removing old stuff)
+*.qrc
+*.pro
+*.pri
+ui_*.h
+moc_*.cpp
+qrc_*.cpp
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
