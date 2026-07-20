@@ -16,6 +16,7 @@
 #include "imgui_impl_dx11.h"
 
 #include <tchar.h>
+#include <filesystem>
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -140,6 +141,10 @@ bool Application::createDeviceD3D() {
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     
     UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+    
     D3D_FEATURE_LEVEL featureLevel;
     const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
     
@@ -149,16 +154,26 @@ bool Application::createDeviceD3D() {
         &d3dDevice_, &featureLevel, &d3dDeviceContext_
     );
     
-    if (res != S_OK) {
-        Logger::instance().error("Failed to create D3D11 device and swap chain");
+    if (res != S_OK || !d3dDevice_ || !swapChain_) {
+        Logger::instance().error("Failed to create D3D11 device and swap chain. HRESULT: {}", static_cast<int>(res));
         return false;
     }
     
     // Create render target
-    ID3D11Texture2D* pBackBuffer;
+    ID3D11Texture2D* pBackBuffer = nullptr;
     swapChain_->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+    if (!pBackBuffer) {
+        Logger::instance().error("Failed to get back buffer");
+        return false;
+    }
+    
     d3dDevice_->CreateRenderTargetView(pBackBuffer, nullptr, &mainRenderTargetView_);
     pBackBuffer->Release();
+    
+    if (!mainRenderTargetView_) {
+        Logger::instance().error("Failed to create render target view");
+        return false;
+    }
     
     return true;
 }
