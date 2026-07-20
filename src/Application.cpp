@@ -28,9 +28,13 @@ Application::~Application() {
 }
 
 bool Application::initialize() {
+    Logger::instance().info("Creating window class...");
+    
     // Create window class
     wc_ = { sizeof(wc_), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"AIHub", nullptr };
     ::RegisterClassExW(&wc_);
+    
+    Logger::instance().info("Creating window...");
     
     // Create window
     hwnd_ = ::CreateWindowW(wc_.lpszClassName, L"AI Hub", WS_OVERLAPPEDWINDOW, 
@@ -40,26 +44,45 @@ bool Application::initialize() {
         return false;
     }
     
+    Logger::instance().info("Window created successfully");
+    
     // Store this pointer
     ::SetWindowLongPtr(hwnd_, GWLP_USERDATA, (LONG_PTR)this);
     
+    Logger::instance().info("Initializing Direct3D...");
+    
     // Initialize Direct3D
     if (!createDeviceD3D()) {
+        Logger::instance().error("Failed to create D3D device");
         cleanupDeviceD3D();
         ::UnregisterClassW(wc_.lpszClassName, wc_.hInstance);
         return false;
     }
+    
+    Logger::instance().info("Direct3D initialized successfully");
     
     // Show window
     ::ShowWindow(hwnd_, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd_);
     
     // Setup ImGui context
-    createImGuiContext();
+    try {
+        createImGuiContext();
+        Logger::instance().info("ImGui context created successfully");
+    } catch (const std::exception& e) {
+        Logger::instance().error("Failed to create ImGui context: {}", e.what());
+        return false;
+    } catch (...) {
+        Logger::instance().error("Failed to create ImGui context: Unknown error");
+        return false;
+    }
     
     // Initialize services
+    Logger::instance().info("Initializing services...");
     ThemeService::instance().applyToImGui();
     ChatService::instance().createConversation("ChatGPT", "gpt-4");
+    
+    Logger::instance().info("Creating UI components...");
     
     // Initialize components
     chatWindow_ = std::make_unique<ChatWindow>();
@@ -192,12 +215,18 @@ void Application::createImGuiContext() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
+    Logger::instance().info("ImGui context created, setting up style...");
+    
     // Setup Dear ImGui style
     ImGuiTheme::ApplyDarkTheme();
+    
+    Logger::instance().info("Initializing ImGui backends...");
     
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd_);
     ImGui_ImplDX11_Init(d3dDevice_, d3dDeviceContext_);
+    
+    Logger::instance().info("Loading fonts...");
     
     // Load fonts (with fallback to default)
     const char* fontPaths[] = {
@@ -208,11 +237,17 @@ void Application::createImGuiContext() {
     
     bool fontLoaded = false;
     for (const char* path : fontPaths) {
-        if (std::filesystem::exists(path)) {
-            io.Fonts->AddFontFromFileTTF(path, 16.0f);
-            fontLoaded = true;
-            Logger::instance().info("Loaded font: {}", path);
-            break;
+        try {
+            if (std::filesystem::exists(path)) {
+                ImFont* font = io.Fonts->AddFontFromFileTTF(path, 16.0f);
+                if (font) {
+                    fontLoaded = true;
+                    Logger::instance().info("Loaded font: {}", path);
+                    break;
+                }
+            }
+        } catch (...) {
+            Logger::instance().warning("Failed to load font: {}", path);
         }
     }
     
@@ -220,6 +255,8 @@ void Application::createImGuiContext() {
         io.Fonts->AddFontDefault();
         Logger::instance().warning("Using default ImGui font (no system fonts found)");
     }
+    
+    Logger::instance().info("Font loading complete");
 }
 
 void Application::cleanupImGuiContext() {
