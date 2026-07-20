@@ -23,8 +23,7 @@ public:
             ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoScrollbar |
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoDocking;
+            ImGuiWindowFlags_NoSavedSettings;
         
         const auto& colors = ThemeService::instance().getColors();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.15f, 0.95f));

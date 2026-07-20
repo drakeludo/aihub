@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.h"
+#include <algorithm>
 #include <functional>
 #include <vector>
 #include <mutex>

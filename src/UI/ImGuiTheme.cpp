@@ -44,8 +44,6 @@ void ImGuiTheme::ApplyDarkTheme() {
     colors[ImGuiCol_TabActive]              = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
     colors[ImGuiCol_TabUnfocused]           = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
     colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-    colors[ImGuiCol_DockingPreview]         = ImVec4(1.00f, 0.72f, 0.30f, 0.70f);
-    colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
     colors[ImGuiCol_PlotLines]              = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 0.72f, 0.30f, 1.00f);
     colors[ImGuiCol_PlotHistogram]          = ImVec4(1.00f, 0.72f, 0.30f, 1.00f);

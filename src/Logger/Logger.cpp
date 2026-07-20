@@ -1,39 +1,53 @@
 #include "Logger.h"
-#include <vector>
+#include <ctime>
+#include <iomanip>
 #include <filesystem>
+#include <iostream>
 
 void Logger::initialize() {
+    std::lock_guard<std::mutex> lock(mutex_);
+
     try {
-        // Create logs directory
         std::filesystem::path logsPath = std::filesystem::temp_directory_path() / "AIHub" / "logs";
         std::filesystem::create_directories(logsPath);
-        
-        std::string logFile = (logsPath / "aihub.log").string();
-        
-        // Create sinks
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_level(spdlog::level::debug);
-        
-        auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-            logFile, 1024 * 1024 * 10, 3  // 10MB, 3 files
-        );
-        file_sink->set_level(spdlog::level::trace);
-        
-        std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
-        
-        // Create logger
-        logger_ = std::make_shared<spdlog::logger>("AIHub", sinks.begin(), sinks.end());
-        logger_->set_level(spdlog::level::debug);
-        logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
-        
-        spdlog::register_logger(logger_);
-        
-        info("Logger initialized successfully");
-        info("Log file: {}", logFile);
-        
-    } catch (const std::exception& e) {
-        // Fallback to console only
-        logger_ = spdlog::stdout_color_mt("AIHub");
-        logger_->error("Logger initialization failed: {}", e.what());
+
+        std::filesystem::path logPath = logsPath / "aihub.log";
+        logFile_.open(logPath, std::ios::out | std::ios::app);
+        initialized_ = true;
+
+        std::string line = "[" + currentTimestamp() + "] [INFO] Logger initialized successfully";
+        if (logFile_.is_open()) {
+            logFile_ << line << '\n';
+            logFile_ << "[" + currentTimestamp() + "] [INFO] Log file: " << logPath.string() << '\n';
+            logFile_.flush();
+        }
+        std::clog << line << '\n';
+        std::clog << "[" + currentTimestamp() + "] [INFO] Log file: " << logPath.string() << '\n';
+    } catch (...) {
+        initialized_ = true;
+        std::clog << "[" + currentTimestamp() + "] [ERROR] Logger initialization failed\n";
     }
+}
+
+Logger::~Logger() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (logFile_.is_open()) {
+        logFile_.flush();
+        logFile_.close();
+    }
+}
+
+std::string Logger::currentTimestamp() {
+    const auto now = std::chrono::system_clock::now();
+    const auto time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &time);
+#else
+    localtime_r(&time, &tm);
+#endif
+
+    std::ostringstream stream;
+    stream << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    return stream.str();
 }

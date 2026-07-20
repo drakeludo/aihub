@@ -3,16 +3,35 @@ project(AIHub VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 # Windows only
 if(NOT WIN32)
     message(FATAL_ERROR "This project is Windows-only")
 endif()
 
-# Find packages
-find_package(imgui CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
+# Bundled Dear ImGui
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_win32.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_dx11.cpp
+)
+
+add_library(imgui STATIC ${IMGUI_SOURCES})
+target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+target_link_libraries(imgui PUBLIC
+    d3d11
+    dxgi
+    d3dcompiler
+    dwmapi
+)
 
 # Application source files
 set(SOURCES
@@ -69,15 +88,17 @@ add_executable(AIHub WIN32 ${SOURCES})
 # Include directories
 target_include_directories(AIHub PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
 )
 
 # Link libraries
 target_link_libraries(AIHub PRIVATE
-    imgui::imgui
-    spdlog::spdlog
+    imgui
     d3d11
     dxgi
     d3dcompiler
+    dwmapi
     windowscodecs
 )
 

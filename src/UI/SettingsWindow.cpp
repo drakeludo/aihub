@@ -3,6 +3,7 @@
 
 void SettingsWindow::render(bool* open) {
     ImGui::Begin("Settings", open);
+    static bool autoSaveConversations = true;
     
     if (ImGui::BeginTabBar("SettingsTabs")) {
         if (ImGui::BeginTabItem("General")) {
@@ -12,7 +13,7 @@ void SettingsWindow::render(bool* open) {
             ImGui::Combo("##defprov", &provider, providers, IM_ARRAYSIZE(providers));
             
             ImGui::Spacing();
-            ImGui::Checkbox("Auto-save conversations", nullptr);
+            ImGui::Checkbox("Auto-save conversations", &autoSaveConversations);
             
             ImGui::EndTabItem();
         }

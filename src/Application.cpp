@@ -176,18 +176,9 @@ void Application::createImGuiContext() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     
     // Setup Dear ImGui style
     ImGuiTheme::ApplyDarkTheme();
-    
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
     
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd_);
@@ -216,41 +207,15 @@ void Application::render() {
     d3dDeviceContext_->OMSetRenderTargets(1, &mainRenderTargetView_, nullptr);
     d3dDeviceContext_->ClearRenderTargetView(mainRenderTargetView_, clear_color);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-    
-    // Update and Render additional Platform Windows
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-    }
-    
+
     swapChain_->Present(1, 0); // Present with vsync
 }
 
 void Application::renderUI() {
     // Background effects
     renderBackground();
-    
-    // Dockspace
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - 30));
-    ImGui::SetNextWindowViewport(viewport->ID);
-    
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
-                                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                     ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar;
-    
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    
-    ImGui::Begin("DockSpace", nullptr, window_flags);
-    ImGui::PopStyleVar(3);
-    
-    // Menu bar
-    if (ImGui::BeginMenuBar()) {
+
+    if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("New Chat", "Ctrl+N")) {
                 ChatService::instance().createConversation("ChatGPT", "gpt-4");
@@ -284,15 +249,9 @@ void Application::renderUI() {
             ImGui::EndMenu();
         }
         
-        ImGui::EndMenuBar();
+        ImGui::EndMainMenuBar();
     }
-    
-    // Dockspace
-    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-    
-    ImGui::End();
-    
+
     // Windows
     sidebarWindow_->render();
     chatWindow_->render();

@@ -109,15 +109,19 @@ void ChatWindow::renderInputArea() {
     
     // Input text
     ImGui::SetNextItemWidth(-100);
-    bool enterPressed = ImGui::InputTextMultiline(
+    ImGui::InputTextMultiline(
         "##input", inputBuffer_, IM_ARRAYSIZE(inputBuffer_),
         ImVec2(-100, 60),
         ImGuiInputTextFlags_CtrlEnterForNewLine
     );
+    const bool submitShortcut =
+        ImGui::IsItemFocused() &&
+        ImGui::GetIO().KeyCtrl &&
+        ImGui::IsKeyPressed(ImGuiKey_Enter, false);
     
     // Send button
     ImGui::SameLine();
-    if (ImGui::Button("Send\n▶", ImVec2(90, 60)) || (enterPressed && ImGui::IsKeyDown(ImGuiKey_ModCtrl))) {
+    if (ImGui::Button("Send\n▶", ImVec2(90, 60)) || submitShortcut) {
         if (strlen(inputBuffer_) > 0) {
             ChatService::instance().sendMessage(inputBuffer_);
             memset(inputBuffer_, 0, sizeof(inputBuffer_));
