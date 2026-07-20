@@ -1,0 +1,51 @@
+========================================
+  Как залить проект на GitHub
+========================================
+
+Репо готов: https://github.com/drakeludo/aihub
+
+ВАРИАНТ 1: GitHub Desktop (самый простой)
+==========================================
+1. Скачай: https://desktop.github.com/
+2. Установи и залогинься
+3. File > Add Local Repository
+4. Выбери: C:\Users\-\Music\AIHub
+5. Нажми "Publish repository"
+
+ВАРИАНТ 2: Через командную строку
+==========================================
+1. Создай Personal Access Token:
+   https://github.com/settings/tokens/new
+   - Note: "AIHub push"
+   - Expiration: 90 days
+   - Select: repo (all)
+   - Generate token
+   - СКОПИРУЙ токен!
+
+2. В PowerShell:
+   cd "C:\Users\-\Music\AIHub"
+   git push -u origin main
+   
+   Username: drakeludo
+   Password: ВСТАВЬ_ТОКЕН_СЮДА
+
+ВАРИАНТ 3: SSH ключ
+==========================================
+1. Генерируй ключ:
+   ssh-keygen -t ed25519 -C "your_email@example.com"
+
+2. Добавь на GitHub:
+   https://github.com/settings/ssh/new
+   
+3. Смени remote на SSH:
+   git remote set-url origin git@github.com:drakeludo/aihub.git
+   git push -u origin main
+
+========================================
+
+Текущий статус:
+- 2 коммита готовы
+- Remote настроен
+- Нужна только авторизация
+
+Репо: https://github.com/drakeludo/aihub

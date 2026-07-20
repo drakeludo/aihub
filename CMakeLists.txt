@@ -20,6 +20,22 @@ set(SOURCES
     src/Application.cpp
     src/Application.h
     
+    # Core
+    src/Core/Event.h
+    src/Core/EventBus.h
+    
+    # Models
+    src/Models/ChatMessage.h
+    src/Models/Provider.h
+    src/Models/Conversation.h
+    src/Models/UserSettings.h
+    
+    # Services
+    src/Services/ChatService.cpp
+    src/Services/ChatService.h
+    src/Services/ThemeService.cpp
+    src/Services/ThemeService.h
+    
     # Logger
     src/Logger/Logger.cpp
     src/Logger/Logger.h

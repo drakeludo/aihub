@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <memory>
 
-class ChatController;
+class ChatService;
 class ChatWindow;
 class SidebarWindow;
 class LogWindow;
@@ -48,7 +48,6 @@ private:
     bool showLogWindow_{true};
     
     // Components
-    std::unique_ptr<ChatController> chatController_;
     std::unique_ptr<ChatWindow> chatWindow_;
     std::unique_ptr<SidebarWindow> sidebarWindow_;
     std::unique_ptr<LogWindow> logWindow_;

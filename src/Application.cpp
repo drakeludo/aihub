@@ -1,11 +1,12 @@
 #include "Application.h"
-#include "Controllers/ChatController.h"
 #include "UI/ChatWindow.h"
 #include "UI/SidebarWindow.h"
 #include "UI/LogWindow.h"
 #include "UI/SettingsWindow.h"
 #include "UI/ImGuiTheme.h"
 #include "Logger/Logger.h"
+#include "Services/ChatService.h"
+#include "Services/ThemeService.h"
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -52,12 +53,13 @@ bool Application::initialize() {
     // Setup ImGui context
     createImGuiContext();
     
-    // Initialize components
-    chatController_ = std::make_unique<ChatController>();
-    chatController_->initialize();
+    // Initialize services
+    ThemeService::instance().applyToImGui();
+    ChatService::instance().createConversation("ChatGPT", "gpt-4");
     
-    chatWindow_ = std::make_unique<ChatWindow>(chatController_.get());
-    sidebarWindow_ = std::make_unique<SidebarWindow>(chatController_.get());
+    // Initialize components
+    chatWindow_ = std::make_unique<ChatWindow>();
+    sidebarWindow_ = std::make_unique<SidebarWindow>();
     logWindow_ = std::make_unique<LogWindow>();
     settingsWindow_ = std::make_unique<SettingsWindow>();
     
@@ -100,7 +102,6 @@ void Application::shutdown() {
     sidebarWindow_.reset();
     logWindow_.reset();
     settingsWindow_.reset();
-    chatController_.reset();
     
     cleanupImGuiContext();
     cleanupDeviceD3D();
@@ -238,7 +239,7 @@ void Application::renderUI() {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("New Chat", "Ctrl+N")) {
-                chatController_->createNewChat();
+                ChatService::instance().createConversation("ChatGPT", "gpt-4");
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4")) {
@@ -250,6 +251,15 @@ void Application::renderUI() {
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Logs", nullptr, &showLogWindow_);
             ImGui::MenuItem("ImGui Demo", nullptr, &showDemoWindow_);
+            ImGui::EndMenu();
+        }
+        
+        if (ImGui::BeginMenu("Theme")) {
+            if (ImGui::MenuItem("Cyber")) ThemeService::instance().setTheme(Theme::Cyber);
+            if (ImGui::MenuItem("Neon")) ThemeService::instance().setTheme(Theme::Neon);
+            if (ImGui::MenuItem("Matrix")) ThemeService::instance().setTheme(Theme::Matrix);
+            if (ImGui::MenuItem("Synthwave")) ThemeService::instance().setTheme(Theme::Synthwave);
+            if (ImGui::MenuItem("Tech Lab")) ThemeService::instance().setTheme(Theme::TechLab);
             ImGui::EndMenu();
         }
         
