@@ -3,10 +3,13 @@
 #include "UI/SidebarWindow.h"
 #include "UI/LogWindow.h"
 #include "UI/SettingsWindow.h"
+#include "UI/StatusBar.h"
+#include "UI/ParticleSystem.h"
 #include "UI/ImGuiTheme.h"
 #include "Logger/Logger.h"
 #include "Services/ChatService.h"
 #include "Services/ThemeService.h"
+#include "Core/PerformanceMonitor.h"
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -62,6 +65,8 @@ bool Application::initialize() {
     sidebarWindow_ = std::make_unique<SidebarWindow>();
     logWindow_ = std::make_unique<LogWindow>();
     settingsWindow_ = std::make_unique<SettingsWindow>();
+    statusBar_ = std::make_unique<StatusBar>();
+    particles_ = std::make_unique<ParticleSystem>(200);
     
     Logger::instance().info("Application initialized successfully");
     
@@ -72,6 +77,8 @@ int Application::run() {
     // Main loop
     bool done = false;
     while (!done) {
+        PerformanceMonitor::instance().beginFrame();
+        
         // Poll and handle messages
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
@@ -91,6 +98,8 @@ int Application::run() {
         
         // Rendering
         render();
+        
+        PerformanceMonitor::instance().endFrame();
     }
     
     return 0;
@@ -98,6 +107,8 @@ int Application::run() {
 
 void Application::shutdown() {
     // Cleanup
+    particles_.reset();
+    statusBar_.reset();
     chatWindow_.reset();
     sidebarWindow_.reset();
     logWindow_.reset();
@@ -217,10 +228,13 @@ void Application::render() {
 }
 
 void Application::renderUI() {
+    // Background effects
+    renderBackground();
+    
     // Dockspace
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - 30));
     ImGui::SetNextWindowViewport(viewport->ID);
     
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
@@ -294,6 +308,62 @@ void Application::renderUI() {
     if (showDemoWindow_) {
         ImGui::ShowDemoWindow(&showDemoWindow_);
     }
+    
+    // Status bar
+    statusBar_->render();
+    
+    // Glow effects
+    renderGlowEffects();
+}
+
+void Application::renderBackground() {
+    backgroundTime_ += 0.016f;
+    
+    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    
+    const auto& colors = ThemeService::instance().getColors();
+    
+    // Animated gradient overlay
+    float pulse = (std::sin(backgroundTime_ * 0.5f) + 1.0f) * 0.5f;
+    ImU32 gradientColor = IM_COL32(
+        ((colors.neon1 >> 24) & 0xFF) * pulse * 0.1f,
+        ((colors.neon1 >> 16) & 0xFF) * pulse * 0.1f,
+        ((colors.neon1 >> 8) & 0xFF) * pulse * 0.1f,
+        20
+    );
+    
+    drawList->AddRectFilledMultiColor(
+        viewport->WorkPos,
+        ImVec2(viewport->WorkPos.x + viewport->WorkSize.x, viewport->WorkPos.y + viewport->WorkSize.y),
+        gradientColor,
+        IM_COL32(0, 0, 0, 0),
+        gradientColor,
+        IM_COL32(0, 0, 0, 0)
+    );
+    
+    // Particles
+    particles_->update(0.016f);
+    particles_->render(drawList);
+    
+    // Emit particles occasionally
+    if (static_cast<int>(backgroundTime_ * 2.0f) % 10 == 0 && particles_->getParticleCount() < 50) {
+        ImVec2 emitPos(
+            viewport->WorkPos.x + std::rand() % static_cast<int>(viewport->WorkSize.x),
+            viewport->WorkPos.y + std::rand() % static_cast<int>(viewport->WorkSize.y)
+        );
+        ImVec4 color(
+            ((colors.neon2 >> 24) & 0xFF) / 255.0f,
+            ((colors.neon2 >> 16) & 0xFF) / 255.0f,
+            ((colors.neon2 >> 8) & 0xFF) / 255.0f,
+            0.5f
+        );
+        particles_->emit(emitPos, color, 1.5f);
+    }
+}
+
+void Application::renderGlowEffects() {
+    // TODO: Add bloom/glow post-processing
 }
 
 LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {

@@ -4,11 +4,12 @@
 #include <d3d11.h>
 #include <memory>
 
-class ChatService;
 class ChatWindow;
 class SidebarWindow;
 class LogWindow;
 class SettingsWindow;
+class StatusBar;
+class ParticleSystem;
 
 class Application {
 public:
@@ -31,6 +32,8 @@ private:
     void newFrame();
     void render();
     void renderUI();
+    void renderBackground();
+    void renderGlowEffects();
     
     // Window
     HWND hwnd_{nullptr};
@@ -52,6 +55,11 @@ private:
     std::unique_ptr<SidebarWindow> sidebarWindow_;
     std::unique_ptr<LogWindow> logWindow_;
     std::unique_ptr<SettingsWindow> settingsWindow_;
+    std::unique_ptr<StatusBar> statusBar_;
+    std::unique_ptr<ParticleSystem> particles_;
+    
+    // Effects
+    float backgroundTime_{0.0f};
     
     // Window size
     int width_{1400};

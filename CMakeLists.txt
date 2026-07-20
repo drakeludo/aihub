@@ -23,6 +23,8 @@ set(SOURCES
     # Core
     src/Core/Event.h
     src/Core/EventBus.h
+    src/Core/ThreadPool.h
+    src/Core/PerformanceMonitor.h
     
     # Models
     src/Models/ChatMessage.h
@@ -35,6 +37,8 @@ set(SOURCES
     src/Services/ChatService.h
     src/Services/ThemeService.cpp
     src/Services/ThemeService.h
+    src/Services/HistoryService.cpp
+    src/Services/HistoryService.h
     
     # Logger
     src/Logger/Logger.cpp
@@ -51,6 +55,9 @@ set(SOURCES
     src/UI/LogWindow.h
     src/UI/SettingsWindow.cpp
     src/UI/SettingsWindow.h
+    src/UI/StatusBar.h
+    src/UI/Animation.h
+    src/UI/ParticleSystem.h
 )
 
 # Executable
