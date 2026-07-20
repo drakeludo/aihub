@@ -162,22 +162,26 @@ std::string ExportService::toJSON(const Conversation& conv) {
 }
 
 bool ExportService::toPDF(const Conversation& conv, const std::string& path) {
+    (void)conv; (void)path; // Suppress unused parameter warnings
     // TODO: PDF generation requires external library
     Logger::instance().warning("PDF export not yet implemented");
     return false;
 }
 
 bool ExportService::fromMarkdown(const std::string& content, Conversation& out) {
+    (void)content; (void)out; // Suppress unused parameter warnings
     // TODO: Parse markdown
     return false;
 }
 
 bool ExportService::fromTXT(const std::string& content, Conversation& out) {
+    (void)content; (void)out; // Suppress unused parameter warnings
     // TODO: Parse TXT
     return false;
 }
 
 bool ExportService::fromJSON(const std::string& content, Conversation& out) {
+    (void)content; (void)out; // Suppress unused parameter warnings
     // TODO: Parse JSON
     return false;
 }

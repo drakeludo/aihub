@@ -11,7 +11,8 @@ HistoryService::~HistoryService() {
 }
 
 bool HistoryService::initialize(const std::string& dbPath) {
-    Logger::instance().info("Initializing HistoryService with database: {}", dbPath);
+    (void)dbPath; // Suppress unused parameter warning
+    Logger::instance().info("Initializing HistoryService (SQLite not yet integrated)");
     
     // TODO: Open SQLite database
     // int rc = sqlite3_open(dbPath.c_str(), &db_);
@@ -97,6 +98,7 @@ bool HistoryService::createTables() {
 }
 
 bool HistoryService::executeSQL(const std::string& sql) {
+    (void)sql; // Suppress unused parameter warning
     // TODO: Execute SQL
     // char* errMsg = nullptr;
     // int rc = sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, &errMsg);
@@ -109,22 +111,26 @@ bool HistoryService::executeSQL(const std::string& sql) {
 }
 
 int HistoryService::saveConversation(const Conversation& conv) {
+    (void)conv; // Suppress unused parameter warning
     // TODO: Insert conversation
-    Logger::instance().info("Saving conversation: {}", conv.title);
+    Logger::instance().info("Saving conversation (not yet implemented)");
     return -1;
 }
 
 bool HistoryService::updateConversation(const Conversation& conv) {
+    (void)conv; // Suppress unused parameter warning
     // TODO: Update conversation
     return true;
 }
 
 bool HistoryService::deleteConversation(int id) {
+    (void)id; // Suppress unused parameter warning
     // TODO: Delete conversation
     return true;
 }
 
 Conversation HistoryService::loadConversation(int id) {
+    (void)id; // Suppress unused parameter warning
     // TODO: Load conversation
     return Conversation();
 }
@@ -135,36 +141,43 @@ std::vector<Conversation> HistoryService::loadAllConversations() {
 }
 
 std::vector<Conversation> HistoryService::searchConversations(const std::string& query) {
+    (void)query; // Suppress unused parameter warning
     // TODO: Search conversations
     return {};
 }
 
 int HistoryService::saveMessage(const ChatMessage& msg) {
+    (void)msg; // Suppress unused parameter warning
     // TODO: Insert message
     return -1;
 }
 
 bool HistoryService::updateMessage(const ChatMessage& msg) {
+    (void)msg; // Suppress unused parameter warning
     // TODO: Update message
     return true;
 }
 
 bool HistoryService::deleteMessage(int id) {
+    (void)id; // Suppress unused parameter warning
     // TODO: Delete message
     return true;
 }
 
 std::vector<ChatMessage> HistoryService::loadMessages(int conversationId) {
+    (void)conversationId; // Suppress unused parameter warning
     // TODO: Load messages
     return {};
 }
 
 bool HistoryService::saveSetting(const std::string& key, const std::string& value) {
+    (void)key; (void)value; // Suppress unused parameter warnings
     // TODO: Save setting
     return true;
 }
 
 std::string HistoryService::loadSetting(const std::string& key, const std::string& defaultValue) {
+    (void)key; // Suppress unused parameter warning
     // TODO: Load setting
     return defaultValue;
 }

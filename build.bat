@@ -54,8 +54,8 @@ if exist "Release\AIHub.exe" (
     echo Executable: build\Release\AIHub.exe
     echo.
     echo [INFO] Copying DLL dependencies...
-    if exist "..\vcpkg_installed\x64-windows\bin" (
-        xcopy /Y /Q "..\vcpkg_installed\x64-windows\bin\*.dll" "Release\"
+    if exist "vcpkg_installed\x64-windows\bin" (
+        xcopy /Y /Q "vcpkg_installed\x64-windows\bin\*.dll" "Release\"
     )
     if exist "C:\vcpkg\installed\x64-windows\bin" (
         xcopy /Y /Q "C:\vcpkg\installed\x64-windows\bin\*.dll" "Release\"
@@ -64,11 +64,13 @@ if exist "Release\AIHub.exe" (
     echo Executable: build\AIHub.exe
     echo.
     echo [INFO] Copying DLL dependencies...
-    if exist "..\vcpkg_installed\x64-windows\bin" (
-        xcopy /Y /Q "..\vcpkg_installed\x64-windows\bin\*.dll" ".\"
+    if exist "vcpkg_installed\x64-windows\bin" (
+        xcopy /Y /Q "vcpkg_installed\x64-windows\bin\*.dll" ".\"
+        echo DLL copied from vcpkg_installed
     )
     if exist "C:\vcpkg\installed\x64-windows\bin" (
         xcopy /Y /Q "C:\vcpkg\installed\x64-windows\bin\*.dll" ".\"
+        echo DLL copied from C:\vcpkg
     )
 )
 

@@ -199,8 +199,27 @@ void Application::createImGuiContext() {
     ImGui_ImplWin32_Init(hwnd_);
     ImGui_ImplDX11_Init(d3dDevice_, d3dDeviceContext_);
     
-    // Load fonts
-    io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 16.0f);
+    // Load fonts (with fallback to default)
+    const char* fontPaths[] = {
+        "c:\\Windows\\Fonts\\segoeui.ttf",
+        "c:\\Windows\\Fonts\\arial.ttf",
+        "c:\\Windows\\Fonts\\Arial.ttf"
+    };
+    
+    bool fontLoaded = false;
+    for (const char* path : fontPaths) {
+        if (std::filesystem::exists(path)) {
+            io.Fonts->AddFontFromFileTTF(path, 16.0f);
+            fontLoaded = true;
+            Logger::instance().info("Loaded font: {}", path);
+            break;
+        }
+    }
+    
+    if (!fontLoaded) {
+        io.Fonts->AddFontDefault();
+        Logger::instance().warning("Using default ImGui font (no system fonts found)");
+    }
 }
 
 void Application::cleanupImGuiContext() {

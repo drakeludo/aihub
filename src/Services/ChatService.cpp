@@ -89,12 +89,14 @@ int ChatService::sendMessage(const std::string& content, const std::vector<std::
 }
 
 bool ChatService::cancelMessage(int messageId) {
+    (void)messageId; // Suppress unused parameter warning
     // TODO: Cancel browser request
-    EventBus::instance().emit(EventType::MessageUpdated, "messageId", messageId);
+    EventBus::instance().emit(EventType::MessageUpdated, "messageId", 0);
     return true;
 }
 
 bool ChatService::regenerateMessage(int messageId) {
+    (void)messageId; // Suppress unused parameter warning
     // TODO: Resend request
     return true;
 }
@@ -159,6 +161,7 @@ std::vector<ChatMessage> ChatService::searchMessages(const std::string& query) {
 }
 
 bool ChatService::exportConversation(int id, const std::string& format, const std::string& path) {
+    (void)format; // Suppress unused parameter warning
     // TODO: Implement export
     Logger::instance().info("Exporting conversation {} to {}", id, path);
     return true;
@@ -172,10 +175,12 @@ void ChatService::setSystemPrompt(const std::string& prompt) {
 }
 
 void ChatService::onMessageReceived(const Event& event) {
+    (void)event; // Suppress unused parameter warning
     Logger::instance().info("Message received event");
 }
 
 void ChatService::onStreamingChunk(const Event& event) {
+    (void)event; // Suppress unused parameter warning
     if (!streamingEnabled_) return;
     
     // TODO: Update message with streaming chunk

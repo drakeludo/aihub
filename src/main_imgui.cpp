@@ -5,7 +5,7 @@
 #include "Logger/Logger.h"
 #include <Windows.h>
 
-int main(int argc, char** argv) {
+int main(int, char**) {
     // Initialize logger
     Logger::instance().initialize();
     Logger::instance().info("AI Hub starting (ImGui version)...");
@@ -31,6 +31,6 @@ int main(int argc, char** argv) {
 }
 
 // Windows entry point
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    return main(__argc, __argv);
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+    return main(0, nullptr);
 }

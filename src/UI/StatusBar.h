@@ -25,7 +25,6 @@ public:
             ImGuiWindowFlags_NoScrollbar |
             ImGuiWindowFlags_NoSavedSettings;
         
-        const auto& colors = ThemeService::instance().getColors();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.15f, 0.95f));
         
         ImGui::Begin("##StatusBar", nullptr, flags);

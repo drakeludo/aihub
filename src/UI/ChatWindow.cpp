@@ -7,7 +7,7 @@
 ChatWindow::ChatWindow() {
     // Subscribe to message events
     subscriptionId_ = EventBus::instance().subscribe(EventType::MessageSent,
-        [this](const Event& e) {
+        [this](const Event&) {
             auto* conv = ChatService::instance().getCurrentConversation();
             if (conv && !conv->messages.empty()) {
                 addMessage(conv->messages.back());
@@ -45,8 +45,6 @@ void ChatWindow::render() {
 void ChatWindow::renderMessageList() {
     auto* conv = ChatService::instance().getCurrentConversation();
     if (!conv) return;
-    
-    const auto& colors = ThemeService::instance().getColors();
     
     for (const auto& msg : conv->messages) {
         ImVec4 bgColor, textColor;
@@ -132,6 +130,6 @@ void ChatWindow::renderInputArea() {
     ImGui::Spacing();
 }
 
-void ChatWindow::addMessage(const ChatMessage& msg) {
+void ChatWindow::addMessage(const ChatMessage&) {
     scrollToBottom_ = true;
 }
