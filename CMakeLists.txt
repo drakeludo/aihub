@@ -25,6 +25,7 @@ set(SOURCES
     src/Core/EventBus.h
     src/Core/ThreadPool.h
     src/Core/PerformanceMonitor.h
+    src/Core/HotkeyManager.h
     
     # Models
     src/Models/ChatMessage.h
@@ -39,6 +40,8 @@ set(SOURCES
     src/Services/ThemeService.h
     src/Services/HistoryService.cpp
     src/Services/HistoryService.h
+    src/Services/ExportService.cpp
+    src/Services/ExportService.h
     
     # Logger
     src/Logger/Logger.cpp
