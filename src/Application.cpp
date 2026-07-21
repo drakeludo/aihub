@@ -209,54 +209,47 @@ void Application::cleanupDeviceD3D() {
 }
 
 void Application::createImGuiContext() {
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    Logger::instance().info("Starting ImGui initialization...");
     
-    Logger::instance().info("ImGui context created, setting up style...");
-    
-    // Setup Dear ImGui style
-    ImGuiTheme::ApplyDarkTheme();
-    
-    Logger::instance().info("Initializing ImGui backends...");
-    
-    // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init(hwnd_);
-    ImGui_ImplDX11_Init(d3dDevice_, d3dDeviceContext_);
-    
-    Logger::instance().info("Loading fonts...");
-    
-    // Load fonts (with fallback to default)
-    const char* fontPaths[] = {
-        "c:\\Windows\\Fonts\\segoeui.ttf",
-        "c:\\Windows\\Fonts\\arial.ttf",
-        "c:\\Windows\\Fonts\\Arial.ttf"
-    };
-    
-    bool fontLoaded = false;
-    for (const char* path : fontPaths) {
-        try {
-            if (std::filesystem::exists(path)) {
-                ImFont* font = io.Fonts->AddFontFromFileTTF(path, 16.0f);
-                if (font) {
-                    fontLoaded = true;
-                    Logger::instance().info("Loaded font: {}", path);
-                    break;
-                }
-            }
-        } catch (...) {
-            Logger::instance().warning("Failed to load font: {}", path);
+    try {
+        // Setup Dear ImGui context
+        Logger::instance().info("Calling IMGUI_CHECKVERSION...");
+        IMGUI_CHECKVERSION();
+        
+        Logger::instance().info("Creating ImGui context...");
+        ImGui::CreateContext();
+        
+        Logger::instance().info("Getting ImGui IO...");
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        
+        Logger::instance().info("Applying theme...");
+        ImGuiTheme::ApplyDarkTheme();
+        
+        Logger::instance().info("Initializing Win32 backend...");
+        if (!ImGui_ImplWin32_Init(hwnd_)) {
+            Logger::instance().error("Failed to initialize Win32 backend");
+            return;
         }
-    }
-    
-    if (!fontLoaded) {
+        
+        Logger::instance().info("Initializing DX11 backend...");
+        if (!ImGui_ImplDX11_Init(d3dDevice_, d3dDeviceContext_)) {
+            Logger::instance().error("Failed to initialize DX11 backend");
+            return;
+        }
+        
+        Logger::instance().info("Loading default font...");
         io.Fonts->AddFontDefault();
-        Logger::instance().warning("Using default ImGui font (no system fonts found)");
+        
+        Logger::instance().info("ImGui initialization complete");
+        
+    } catch (const std::exception& e) {
+        Logger::instance().error("Exception in createImGuiContext: {}", e.what());
+        throw;
+    } catch (...) {
+        Logger::instance().error("Unknown exception in createImGuiContext");
+        throw;
     }
-    
-    Logger::instance().info("Font loading complete");
 }
 
 void Application::cleanupImGuiContext() {
