@@ -4,7 +4,6 @@
 #include "UI/LogWindow.h"
 #include "UI/SettingsWindow.h"
 #include "UI/StatusBar.h"
-#include "UI/ParticleSystem.h"
 #include "UI/ImGuiTheme.h"
 #include "Logger/Logger.h"
 #include "Services/ChatService.h"
@@ -84,7 +83,7 @@ bool Application::initialize() {
     
     // Initialize services
     Logger::instance().info("Initializing services...");
-    ThemeService::instance().applyToImGui();
+    ThemeService::instance().setTheme(Theme::Cyber); // Will apply Claude Code colors
     ChatService::instance().createConversation("ChatGPT", "gpt-4");
     
     Logger::instance().info("Creating UI components...");
@@ -95,7 +94,7 @@ bool Application::initialize() {
     logWindow_ = std::make_unique<LogWindow>();
     settingsWindow_ = std::make_unique<SettingsWindow>();
     statusBar_ = std::make_unique<StatusBar>();
-    particles_ = std::make_unique<ParticleSystem>(200);
+    // particles_ disabled for Claude Code minimal style
     
     Logger::instance().info("Application initialized successfully");
     
@@ -136,7 +135,6 @@ int Application::run() {
 
 void Application::shutdown() {
     // Cleanup
-    particles_.reset();
     statusBar_.reset();
     chatWindow_.reset();
     sidebarWindow_.reset();
@@ -272,7 +270,8 @@ void Application::newFrame() {
 void Application::render() {
     ImGui::Render();
     
-    const float clear_color[4] = { 0.12f, 0.12f, 0.12f, 1.00f };
+    // Claude Code style: dark gray background
+    const float clear_color[4] = { 0.11f, 0.11f, 0.11f, 1.00f }; // #1C1C1C
     d3dDeviceContext_->OMSetRenderTargets(1, &mainRenderTargetView_, nullptr);
     d3dDeviceContext_->ClearRenderTargetView(mainRenderTargetView_, clear_color);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -281,8 +280,7 @@ void Application::render() {
 }
 
 void Application::renderUI() {
-    // Background effects
-    renderBackground();
+    // Claude Code style: no fancy background effects
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
@@ -299,15 +297,6 @@ void Application::renderUI() {
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Logs", nullptr, &showLogWindow_);
             ImGui::MenuItem("ImGui Demo", nullptr, &showDemoWindow_);
-            ImGui::EndMenu();
-        }
-        
-        if (ImGui::BeginMenu("Theme")) {
-            if (ImGui::MenuItem("Cyber")) ThemeService::instance().setTheme(Theme::Cyber);
-            if (ImGui::MenuItem("Neon")) ThemeService::instance().setTheme(Theme::Neon);
-            if (ImGui::MenuItem("Matrix")) ThemeService::instance().setTheme(Theme::Matrix);
-            if (ImGui::MenuItem("Synthwave")) ThemeService::instance().setTheme(Theme::Synthwave);
-            if (ImGui::MenuItem("Tech Lab")) ThemeService::instance().setTheme(Theme::TechLab);
             ImGui::EndMenu();
         }
         
@@ -339,60 +328,6 @@ void Application::renderUI() {
     
     // Status bar
     statusBar_->render();
-    
-    // Glow effects
-    renderGlowEffects();
-}
-
-void Application::renderBackground() {
-    backgroundTime_ += 0.016f;
-    
-    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    
-    const auto& colors = ThemeService::instance().getColors();
-    
-    // Animated gradient overlay - FIXED color extraction
-    float pulse = (std::sin(backgroundTime_ * 0.5f) + 1.0f) * 0.5f;
-    ImU32 gradientColor = IM_COL32(
-        static_cast<int>(((colors.neon1 >> 16) & 0xFF) * pulse * 0.1f),  // R
-        static_cast<int>(((colors.neon1 >> 8) & 0xFF) * pulse * 0.1f),   // G
-        static_cast<int>((colors.neon1 & 0xFF) * pulse * 0.1f),          // B
-        20
-    );
-    
-    drawList->AddRectFilledMultiColor(
-        viewport->WorkPos,
-        ImVec2(viewport->WorkPos.x + viewport->WorkSize.x, viewport->WorkPos.y + viewport->WorkSize.y),
-        gradientColor,
-        IM_COL32(0, 0, 0, 0),
-        gradientColor,
-        IM_COL32(0, 0, 0, 0)
-    );
-    
-    // Particles
-    particles_->update(0.016f);
-    particles_->render(drawList);
-    
-    // Emit particles occasionally
-    if (static_cast<int>(backgroundTime_ * 2.0f) % 10 == 0 && particles_->getParticleCount() < 50) {
-        ImVec2 emitPos(
-            viewport->WorkPos.x + std::rand() % static_cast<int>(viewport->WorkSize.x),
-            viewport->WorkPos.y + std::rand() % static_cast<int>(viewport->WorkSize.y)
-        );
-        // FIXED: correct RGB extraction from ImU32
-        ImVec4 color(
-            ((colors.neon2 >> 16) & 0xFF) / 255.0f,  // R
-            ((colors.neon2 >> 8) & 0xFF) / 255.0f,   // G
-            (colors.neon2 & 0xFF) / 255.0f,          // B
-            0.5f
-        );
-        particles_->emit(emitPos, color, 1.5f);
-    }
-}
-
-void Application::renderGlowEffects() {
-    // TODO: Add bloom/glow post-processing
 }
 
 LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {

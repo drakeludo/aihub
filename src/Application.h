@@ -32,8 +32,6 @@ private:
     void newFrame();
     void render();
     void renderUI();
-    void renderBackground();
-    void renderGlowEffects();
     
     // Window
     HWND hwnd_{nullptr};
@@ -56,10 +54,6 @@ private:
     std::unique_ptr<LogWindow> logWindow_;
     std::unique_ptr<SettingsWindow> settingsWindow_;
     std::unique_ptr<StatusBar> statusBar_;
-    std::unique_ptr<ParticleSystem> particles_;
-    
-    // Effects
-    float backgroundTime_{0.0f};
     
     // Window size
     int width_{1400};
