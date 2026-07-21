@@ -2,6 +2,7 @@
   "dependencies": [
     "imgui",
     "spdlog",
-    "sqlite3"
+    "sqlite3",
+    "webview2"
   ]
 }

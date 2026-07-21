@@ -29,6 +29,10 @@ public:
     bool deleteMessage(int messageId);
     bool pinMessage(int messageId);
     
+    // AI Provider selection
+    void setProvider(const std::string& provider);
+    std::string getCurrentProvider() const { return currentProvider_; }
+    
     // Search
     std::vector<ChatMessage> searchMessages(const std::string& query);
     
@@ -51,6 +55,7 @@ private:
     std::vector<Conversation> conversations_;
     int currentConversationId_{-1};
     bool streamingEnabled_{true};
+    std::string currentProvider_{"ChatGPT"};
     
     int subscriptionId_{-1};
 };

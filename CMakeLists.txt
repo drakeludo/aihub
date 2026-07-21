@@ -61,6 +61,8 @@ set(SOURCES
     src/Services/HistoryService.h
     src/Services/ExportService.cpp
     src/Services/ExportService.h
+    src/Services/BrowserService.cpp
+    src/Services/BrowserService.h
     
     # Logger
     src/Logger/Logger.cpp
@@ -93,9 +95,12 @@ target_include_directories(AIHub PRIVATE
 )
 
 # Link libraries
+find_package(unofficial-webview2 CONFIG REQUIRED)
+
 target_link_libraries(AIHub PRIVATE
     imgui
     d3d11
+    unofficial::webview2::webview2
     dxgi
     d3dcompiler
     dwmapi

@@ -1,5 +1,8 @@
 #include "ChatService.h"
+#include "BrowserService.h"
 #include "../Logger/Logger.h"
+#include <thread>
+#include <chrono>
 
 ChatService::ChatService() {
     // Subscribe to events
@@ -83,7 +86,32 @@ int ChatService::sendMessage(const std::string& content, const std::vector<std::
     Logger::instance().info("Sending message {} in conversation {}", msg.id, currentConversationId_);
     EventBus::instance().emit(EventType::MessageSent, "messageId", msg.id);
     
-    // TODO: Send to BrowserService
+    // Send to BrowserService (WebView2)
+    if (BrowserService::instance().isInitialized()) {
+        BrowserService::instance().sendMessage(content);
+        
+        // Poll for response (async)
+        // TODO: Use proper async/await pattern
+        std::thread([this, conv]() {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            
+            BrowserService::instance().getResponse([this, conv](const std::string& response) {
+                if (!response.empty()) {
+                    ChatMessage aiMsg;
+                    aiMsg.id = static_cast<int>(conv->messages.size());
+                    aiMsg.conversationId = currentConversationId_;
+                    aiMsg.role = MessageRole::Assistant;
+                    aiMsg.content = response;
+                    aiMsg.status = MessageStatus::Sent;
+                    
+                    conv->messages.push_back(aiMsg);
+                    EventBus::instance().emit(EventType::MessageReceived, "messageId", aiMsg.id);
+                }
+            });
+        }).detach();
+    } else {
+        Logger::instance().warning("BrowserService not initialized, message not sent to AI");
+    }
     
     return msg.id;
 }
@@ -171,6 +199,21 @@ void ChatService::setSystemPrompt(const std::string& prompt) {
     auto* conv = getCurrentConversation();
     if (conv) {
         conv->systemPrompt = prompt;
+    }
+}
+
+void ChatService::setProvider(const std::string& provider) {
+    currentProvider_ = provider;
+    Logger::instance().info("AI Provider changed to: {}", provider);
+    
+    // Map provider name to AIProvider enum
+    AIProvider providerEnum = AIProvider::ChatGPT;
+    if (provider == "Claude") providerEnum = AIProvider::Claude;
+    else if (provider == "DeepSeek") providerEnum = AIProvider::DeepSeek;
+    else if (provider == "Gemini") providerEnum = AIProvider::Gemini;
+    
+    if (BrowserService::instance().isInitialized()) {
+        BrowserService::instance().navigateToProvider(providerEnum);
     }
 }
 

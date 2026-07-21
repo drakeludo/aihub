@@ -8,6 +8,7 @@
 #include "Logger/Logger.h"
 #include "Services/ChatService.h"
 #include "Services/ThemeService.h"
+#include "Services/BrowserService.h"
 #include "Core/PerformanceMonitor.h"
 
 #include "imgui.h"
@@ -94,7 +95,13 @@ bool Application::initialize() {
     logWindow_ = std::make_unique<LogWindow>();
     settingsWindow_ = std::make_unique<SettingsWindow>();
     statusBar_ = std::make_unique<StatusBar>();
-    // particles_ disabled for Claude Code minimal style
+    
+    // Initialize WebView2 for AI providers
+    Logger::instance().info("Initializing BrowserService (WebView2)...");
+    if (!BrowserService::instance().initialize(hwnd_)) {
+        Logger::instance().error("Failed to initialize BrowserService");
+        // Non-fatal: app can still work without WebView2
+    }
     
     Logger::instance().info("Application initialized successfully");
     
@@ -135,6 +142,8 @@ int Application::run() {
 
 void Application::shutdown() {
     // Cleanup
+    BrowserService::instance().shutdown();
+    
     statusBar_.reset();
     chatWindow_.reset();
     sidebarWindow_.reset();
