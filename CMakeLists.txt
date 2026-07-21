@@ -79,6 +79,8 @@ set(SOURCES
     src/UI/LogWindow.h
     src/UI/SettingsWindow.cpp
     src/UI/SettingsWindow.h
+    src/UI/IDEWindow.cpp
+    src/UI/IDEWindow.h
     src/UI/StatusBar.h
     src/UI/Animation.h
     src/UI/ParticleSystem.h

@@ -30,6 +30,7 @@ public:
 
     // Navigation
     void navigateToProvider(AIProvider provider);
+    void openBrowser(const std::string& providerName); // Простой API для UI
     void reload();
     void goBack();
     void goForward();

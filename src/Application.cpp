@@ -4,6 +4,7 @@
 #include "UI/LogWindow.h"
 #include "UI/SettingsWindow.h"
 #include "UI/StatusBar.h"
+#include "UI/IDEWindow.h"
 #include "UI/ImGuiTheme.h"
 #include "Logger/Logger.h"
 #include "Services/ChatService.h"
@@ -95,6 +96,7 @@ bool Application::initialize() {
     logWindow_ = std::make_unique<LogWindow>();
     settingsWindow_ = std::make_unique<SettingsWindow>();
     statusBar_ = std::make_unique<StatusBar>();
+    ideWindow_ = std::make_unique<IDEWindow>();
     
     // Initialize WebView2 for AI providers
     Logger::instance().info("Initializing BrowserService (WebView2)...");
@@ -144,6 +146,7 @@ void Application::shutdown() {
     // Cleanup
     BrowserService::instance().shutdown();
     
+    ideWindow_.reset();
     statusBar_.reset();
     chatWindow_.reset();
     sidebarWindow_.reset();
@@ -305,7 +308,24 @@ void Application::renderUI() {
         
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Logs", nullptr, &showLogWindow_);
+            ImGui::MenuItem("IDE", nullptr, &showIDE_);
             ImGui::MenuItem("ImGui Demo", nullptr, &showDemoWindow_);
+            ImGui::EndMenu();
+        }
+        
+        if (ImGui::BeginMenu("AI Providers")) {
+            if (ImGui::MenuItem("Open ChatGPT")) {
+                BrowserService::instance().openBrowser("chatgpt");
+            }
+            if (ImGui::MenuItem("Open DeepSeek")) {
+                BrowserService::instance().openBrowser("deepseek");
+            }
+            if (ImGui::MenuItem("Open Claude")) {
+                BrowserService::instance().openBrowser("claude");
+            }
+            if (ImGui::MenuItem("Open Kiro")) {
+                BrowserService::instance().openBrowser("kiro");
+            }
             ImGui::EndMenu();
         }
         
@@ -319,6 +339,31 @@ void Application::renderUI() {
         ImGui::EndMainMenuBar();
     }
 
+    // Quick access toolbar
+    ImGui::SetNextWindowPos(ImVec2(200, 25));
+    ImGui::SetNextWindowSize(ImVec2(600, 50));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.09f, 0.09f, 0.09f, 0.95f));
+    ImGui::Begin("##Toolbar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    
+    if (ImGui::Button("ChatGPT", ImVec2(100, 30))) {
+        BrowserService::instance().openBrowser("chatgpt");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("DeepSeek", ImVec2(100, 30))) {
+        BrowserService::instance().openBrowser("deepseek");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Kiro", ImVec2(100, 30))) {
+        BrowserService::instance().openBrowser("kiro");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("IDE", ImVec2(100, 30))) {
+        showIDE_ = true;
+    }
+    
+    ImGui::End();
+    ImGui::PopStyleColor();
+
     // Windows
     sidebarWindow_->render();
     chatWindow_->render();
@@ -329,6 +374,10 @@ void Application::renderUI() {
     
     if (showSettingsWindow_) {
         settingsWindow_->render(&showSettingsWindow_);
+    }
+    
+    if (showIDE_) {
+        ideWindow_->render(&showIDE_);
     }
     
     if (showDemoWindow_) {

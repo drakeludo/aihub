@@ -105,6 +105,31 @@ void BrowserService::navigateToProvider(AIProvider provider) {
     webView_->Navigate(wurl.c_str());
 }
 
+void BrowserService::openBrowser(const std::string& providerName) {
+    AIProvider provider = AIProvider::ChatGPT;
+    
+    if (providerName == "chatgpt" || providerName == "ChatGPT") {
+        provider = AIProvider::ChatGPT;
+    } else if (providerName == "claude" || providerName == "Claude") {
+        provider = AIProvider::Claude;
+    } else if (providerName == "deepseek" || providerName == "DeepSeek") {
+        provider = AIProvider::DeepSeek;
+    } else if (providerName == "gemini" || providerName == "Gemini") {
+        provider = AIProvider::Gemini;
+    } else if (providerName == "kiro" || providerName == "Kiro") {
+        // Kiro - special case (local or custom URL)
+        if (webView_) {
+            std::wstring kiroUrl = L"http://localhost:7777"; // Adjust as needed
+            webView_->Navigate(kiroUrl.c_str());
+            Logger::instance().info("Opening Kiro at localhost:7777");
+        }
+        return;
+    }
+    
+    navigateToProvider(provider);
+    setVisible(true); // Make WebView visible
+}
+
 void BrowserService::reload() {
     if (webView_) {
         webView_->Reload();

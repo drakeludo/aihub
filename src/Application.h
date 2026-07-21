@@ -47,6 +47,7 @@ private:
     bool showDemoWindow_{false};
     bool showSettingsWindow_{false};
     bool showLogWindow_{true};
+    bool showIDE_{false};
     
     // Components
     std::unique_ptr<ChatWindow> chatWindow_;
@@ -54,6 +55,7 @@ private:
     std::unique_ptr<LogWindow> logWindow_;
     std::unique_ptr<SettingsWindow> settingsWindow_;
     std::unique_ptr<StatusBar> statusBar_;
+    std::unique_ptr<class IDEWindow> ideWindow_;
     
     // Window size
     int width_{1400};
