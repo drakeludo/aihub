@@ -17,6 +17,8 @@
 
 #include <tchar.h>
 #include <filesystem>
+#include <ctime>
+#include <cstdlib>
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -28,6 +30,9 @@ Application::~Application() {
 }
 
 bool Application::initialize() {
+    // Initialize random seed for particles
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    
     Logger::instance().info("Creating window class...");
     
     // Create window class
@@ -347,12 +352,12 @@ void Application::renderBackground() {
     
     const auto& colors = ThemeService::instance().getColors();
     
-    // Animated gradient overlay
+    // Animated gradient overlay - FIXED color extraction
     float pulse = (std::sin(backgroundTime_ * 0.5f) + 1.0f) * 0.5f;
     ImU32 gradientColor = IM_COL32(
-        ((colors.neon1 >> 24) & 0xFF) * pulse * 0.1f,
-        ((colors.neon1 >> 16) & 0xFF) * pulse * 0.1f,
-        ((colors.neon1 >> 8) & 0xFF) * pulse * 0.1f,
+        static_cast<int>(((colors.neon1 >> 16) & 0xFF) * pulse * 0.1f),  // R
+        static_cast<int>(((colors.neon1 >> 8) & 0xFF) * pulse * 0.1f),   // G
+        static_cast<int>((colors.neon1 & 0xFF) * pulse * 0.1f),          // B
         20
     );
     
@@ -375,10 +380,11 @@ void Application::renderBackground() {
             viewport->WorkPos.x + std::rand() % static_cast<int>(viewport->WorkSize.x),
             viewport->WorkPos.y + std::rand() % static_cast<int>(viewport->WorkSize.y)
         );
+        // FIXED: correct RGB extraction from ImU32
         ImVec4 color(
-            ((colors.neon2 >> 24) & 0xFF) / 255.0f,
-            ((colors.neon2 >> 16) & 0xFF) / 255.0f,
-            ((colors.neon2 >> 8) & 0xFF) / 255.0f,
+            ((colors.neon2 >> 16) & 0xFF) / 255.0f,  // R
+            ((colors.neon2 >> 8) & 0xFF) / 255.0f,   // G
+            (colors.neon2 & 0xFF) / 255.0f,          // B
             0.5f
         );
         particles_->emit(emitPos, color, 1.5f);
@@ -398,9 +404,24 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
     switch (msg) {
         case WM_SIZE:
             if (app && app->d3dDevice_ != nullptr && wParam != SIZE_MINIMIZED) {
-                app->cleanupDeviceD3D();
-                app->swapChain_->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-                app->createDeviceD3D();
+                // Правильный resize: не пересоздаем device, только RTV
+                if (app->mainRenderTargetView_) {
+                    app->mainRenderTargetView_->Release();
+                    app->mainRenderTargetView_ = nullptr;
+                }
+                
+                HRESULT hr = app->swapChain_->ResizeBuffers(0,
+                    (UINT)LOWORD(lParam), (UINT)HIWORD(lParam),
+                    DXGI_FORMAT_UNKNOWN, 0);
+                
+                if (SUCCEEDED(hr)) {
+                    ID3D11Texture2D* pBackBuffer = nullptr;
+                    app->swapChain_->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+                    if (pBackBuffer) {
+                        app->d3dDevice_->CreateRenderTargetView(pBackBuffer, nullptr, &app->mainRenderTargetView_);
+                        pBackBuffer->Release();
+                    }
+                }
             }
             return 0;
         case WM_SYSCOMMAND:
