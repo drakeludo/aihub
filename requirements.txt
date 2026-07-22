@@ -1,0 +1,5 @@
+playwright
+pyside6
+PyYAML
+markdown
+pygments
